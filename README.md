@@ -119,4 +119,4 @@ Successful execution will automatically generate a results/ folder containing th
 
 **Rare Cell Preservation:** Filtering parameters are optimized to preserve rare cell types that might otherwise be lost during strict quality control.
 
-**Contact / Author:** Pipeline developed and maintained by [Your Name/GitHub Handle].
+**Contact / Author:** Pipeline developed and maintained by [Onur Yıldırım](https://github.com/Joyboy-91) during an internship at the Adebali Lab, Sabancı University.
