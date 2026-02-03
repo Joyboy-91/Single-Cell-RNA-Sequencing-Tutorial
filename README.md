@@ -30,7 +30,7 @@ Traditional RNA sequencing (Bulk RNA-seq) gives the average gene expression of m
 ##How is the Raw Data Generated? (The 10x Genomics Workflow)##
 Before running this code, the biological samples go through a fascinating micro-engineering process:
 1. **Dissociation:** Complex tissues are enzymatically digested into a single-cell suspension.
-2. **Droplet Encapsulation:** Each cell is trapped inside a microscopic oil droplet alongside a specialized Gel Bead.
+2. **Droplet Encapsulation:** Each cell is trapped inside a microscopic oil droplet alongside a specialized gel bead.
 3. **Barcoding:** RNA molecules are tagged with a unique **Cell Barcode** (to identify which cell they belong to) and a **UMI** (to count individual transcripts).
 4. **Sequencing:** The tagged RNAs are amplified and sequenced via Illumina platforms.
 5. **Matrix Generation:** Finally, the *CellRanger* pipeline maps these reads to a reference genome, producing the final `matrix.mtx`, `barcodes.tsv`, and `features.tsv` files that this Python pipeline uses.
