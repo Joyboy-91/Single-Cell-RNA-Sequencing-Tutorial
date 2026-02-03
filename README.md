@@ -36,12 +36,19 @@ This pipeline is fully compatible with standard 10x Genomics output formats. To 
 ### 📥 Download the Dataset
 The raw dataset used in this tutorial (515 MB uncompressed) is hosted in the GitHub Releases section to keep the repository lightweight. 
 
-1. **[Click here to download `datas.tar.gz`](https://github.com/Joyboy-91/Single-Cell-RNA-Sequencing-Tutorial/releases/download/v1.0.0/datas.tar.gz)**
+**Option A: One-Liner for Terminal (Linux / Mac / WSL) - Recommended**
+Run the following commands in your terminal to download and extract the dataset automatically:
+```bash
+wget [https://github.com/Joyboy-91/Single-Cell-RNA-Sequencing-Tutorial/releases/download/v1.0.0/datas.tar.gz](https://github.com/Joyboy-91/Single-Cell-RNA-Sequencing-Tutorial/releases/download/v1.0.0/datas.tar.gz)
+tar -xzvf datas.tar.gz
+```
+
+1. **Option B: Manual Download (Windows) `datas.tar.gz`](https://github.com/Joyboy-91/Single-Cell-RNA-Sequencing-Tutorial/releases/download/v1.0.0/datas.tar.gz)**
 2. Place the downloaded file in your project folder and extract it so that the `datas/` folder is visible.
 
 **To extract via Terminal (Linux/Mac/WSL):**
 ```bash
-tar -xzvf datas.tar.gz
+tar -xzvf datas.tar.
 ```
 
 **Supported Input Formats:**
