@@ -53,6 +53,7 @@ You can customize sample names and condition labels directly within the configur
 
 Using a **Conda** environment is highly recommended for the reproducibility of the analyses. Python 3.8 or higher is required.
 
+```bash
 # 1. Create a new conda environment
 conda create -n sc_pipeline_env python=3.9
 conda activate sc_pipeline_env
@@ -60,6 +61,7 @@ conda activate sc_pipeline_env
 # 2. Install necessary libraries
 pip install scanpy pandas numpy matplotlib seaborn bbknn
 pip install fa2  # Critical for robust Trajectory tree plots (ForceAtlas2)
+```
 
 ---
 
@@ -98,7 +100,8 @@ Loads raw data, performs quality control (mitochondrial ratio, gene counts), nor
 **Run:**
 ```bash
 python 1_preprocessing_and_clustering.py
-
+```
+--- 
 📊 6. Results and Outputs <a name="6-outputs"></a>
 Successful execution will automatically generate a results/ folder containing the following:
 
@@ -115,6 +118,8 @@ Transcription Factor (TF) Enrichment: Plots showing active regulatory mechanisms
 Expression Dynamics: Violin plots showing the expression of your Genes of Interest across different conditions.
 
 Pseudotime Tree: A continuous map (ForceAtlas2) showing how cells transition from State A to State B, colored by pseudotime gradients and gene expression.
+
+--- 
 
 📝 7. Notes & Acknowledgements <a name="7-notes"></a>
 Auto-Tune Resolution: The sub-clustering algorithm features a dynamic "binary search" logic to automatically find the optimal Leiden resolution for a target number of clusters.
