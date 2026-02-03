@@ -61,20 +61,23 @@ pip install fa2-modified  # Critical for robust Trajectory tree plots (ForceAtla
 
 ## 🛠️ 4. Libraries Used <a name="4-libraries"></a>
 
-**Scanpy**  
-The core library for scRNA-seq data analysis (quality control, normalization, clustering, visualization).
+**Scanpy (v1.11.5)** The core analytical toolkit used for the entire single-cell pipeline. Handled quality control, normalizations, Leiden clustering, and advanced trajectory inference tools including **PAGA** (topological skeleton) and **Diffusion Maps** (pseudotime calculation).
 
-**BBKNN**  
-Used for batch effect correction to integrate multiple datasets while preserving biological variation.
+**BBKNN (v1.6.0)** A fast and lightweight graph-based batch effect correction algorithm. It integrates control and irradiated datasets by altering the neighborhood graph without altering the PCA space.
 
-**fa2-modified (ForceAtlas2)**  
-Graph-based layout engine for visualizing developmental trajectories and pseudotime trees.
+**leidenalg (v0.11.0)** The backend algorithm used by Scanpy to perform graph-based community detection, allowing for high-resolution sub-clustering of specific cell types (e.g., Fibroblasts).
 
-**Pandas & NumPy**  
-Libraries for data manipulation, matrix operations, and numerical computation.
+**igraph (v1.0.0)** A high-performance network analysis library acting as the computational backend for both **PAGA** and **ForceAtlas2** to calculate complex topological structures and cellular connectivity.
 
-**Matplotlib & Seaborn**  
-Used to generate high-quality, publication-ready visualizations.
+**fa2-modified (v0.4)** A highly optimized graph layout engine used to visualize the PAGA-derived branching trajectories. *Note: The pipeline uses a custom `sys.modules` monkey patch to dynamically load the more stable `fa2_modified` branch, ensuring compatibility with the latest Scanpy versions, while keeping standard `fa2` as a fallback.*
+
+**Pandas (v2.2.3) & NumPy (v2.2+)** Core Python libraries used for metadata manipulation, sparse matrix operations, and numerical computations (e.g., root cell identification for pseudotime).
+
+**Matplotlib (v3.10.0) & Seaborn (v0.13.2)** Used to generate all publication-ready visualizations, including t-SNE split plots, gene expression dot plots, and pseudotime distribution scatter plots.
+
+**pathlib (Built-in, Python 3.10)** A standard Python library used for object-oriented filesystem path manipulation. It ensures cross-platform compatibility (Windows, macOS, Linux) when loading raw data and automatically creates the necessary `results/` output directories.
+
+**sys (Built-in, Python 3.10)** Used for system-specific parameters and functions. In this pipeline, it is specifically utilized for "monkey patching" `sys.modules` to dynamically redirect standard `fa2` calls to the `fa2_modified` library.
 
 ---
 
