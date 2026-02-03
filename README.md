@@ -22,24 +22,23 @@ This repository provides an end-to-end analytical pipeline for **Single-Cell RNA
 
 Traditional RNA sequencing (Bulk RNA-seq) gives the average gene expression of millions of cells in a tissue (like a "fruit smoothie"). **Single-Cell RNA Sequencing (scRNA-seq)**, on the other hand, tags and analyzes the genetic material of each cell individually (like identifying each "fruit" separately).
 
-
-
 **Why use this pipeline?**
-* To discover **rare cell types** and hidden sub-populations in complex tissues.
-* To perform robust **batch correction** across multiple samples or experimental conditions (e.g., Control vs. Treated).
-* To track the developmental or disease-driven changes of cells over time (**Pseudotime/Trajectory Analysis**).
+* **To identify rare cell types:** Uses high-resolution clustering and tailored QC thresholds to discover hidden sub-populations (e.g., specific Fibroblast subtypes) in complex tissues.
+* **To integrate complex experimental designs:** Performs robust **batch effect correction** across multiple species (Human/Rat) and diverse conditions (e.g., Control vs. Irradiated / Time-series data).
+* **To track cellular fate decisions:** Uses advanced **Pseudotime and Trajectory Analysis** to map how cells differentiate or respond to disease states over time.
 
 ---
 
 ## 📂 2. Dataset & Inputs <a name="2-dataset-inputs"></a>
 
-This pipeline is compatible with standard 10x Genomics output formats. To run the code, your raw data files must be placed inside the `data/` directory.
+This pipeline is fully compatible with standard 10x Genomics output formats. To run the code successfully, your raw data folders must be placed inside the `datas/` directory.
 
 **Supported Input Formats:**
-* **10x CellRanger Outputs:** `matrix.mtx`, `barcodes.tsv`, `features.tsv` (or `genes.tsv`).
-* **AnnData:** Pre-processed `.h5ad` files.
+* **10x CellRanger Outputs:** The standard trio of `matrix.mtx`, `barcodes.tsv`, and `features.tsv` (or `genes.tsv`).
+* **AnnData:** Pre-processed `.h5ad` files can also be integrated directly.
 
-You can customize sample names and condition labels directly within the configuration section of the scripts.
+**Configuring Your Data:**
+The pipeline uses a custom helper function (`load_and_standardize`) that automatically tags your datasets with specific metadata. You can easily define your own sample names, experimental conditions (e.g., "Control", "7d", "IR"), and species directly within the script's data loading section.
 
 ---
 
