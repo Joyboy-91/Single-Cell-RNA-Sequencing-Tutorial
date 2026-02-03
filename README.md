@@ -1,6 +1,6 @@
 # 🧬 Comprehensive Single-Cell RNA-Seq Analysis Pipeline
 
-![Python](https://img.shields.io/badge/python-3.9-blue.svg)
+![Python](https://img.shields.io/badge/python-3.10.19-blue.svg)
 ![Scanpy](https://img.shields.io/badge/Scanpy-1.9+-green.svg)
 
 This repository provides an end-to-end analytical pipeline for **Single-Cell RNA Sequencing (scRNA-seq)** data. It includes scripts for quality control, batch correction, dimensionality reduction, cell type annotation, and advanced trajectory inference (pseudotime) to study cellular differentiation and dynamics.
@@ -45,11 +45,11 @@ You can customize sample names and condition labels directly within the configur
 
 ## 💻 3. Requirements & Setup (Environment) <a name="3-environment"></a>
 
-Using a **Conda** environment is highly recommended for the reproducibility of the analyses. Python 3.8 or higher is required.
+Using a **Conda** environment is highly recommended for the reproducibility of the analyses. Python 3.10 or higher is required.
 
 ```bash
 # 1. Create a new conda environment
-conda create -n sc_pipeline_env python=3.9
+conda create -n sc_pipeline_env python=3.10
 conda activate sc_pipeline_env
 
 # 2. Install necessary libraries
