@@ -113,6 +113,7 @@ Successful execution will automatically generate a results/ folder containing th
 **Marker Gene Dotplots:** A summary of top differentially expressed genes across all identified clusters.
 
 **Developmental Trajectory**
+
 **Transcription Factor (TF) Enrichment:** Plots showing active regulatory mechanisms.
 
 **Expression Dynamics:** Violin plots showing the expression of your Genes of Interest across different conditions.
