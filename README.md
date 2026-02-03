@@ -48,7 +48,7 @@ tar -xzvf datas.tar.gz
 
 Place the downloaded file in your project folder and extract it so that the `datas/` folder is visible.
 
-**To extract via Terminal (Linux/Mac/WSL):**
+**To extract via Terminal (Linux/Mac/WSL/Git Bash for Windows):**
 ```bash
 tar -xzvf datas.tar.
 ```
