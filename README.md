@@ -1,6 +1,3 @@
-Metninizdeki bozulan başlıkları, madde işaretlerini ve özellikle tüm kod bloklarını GitHub Markdown formatına uygun şekilde (siyah kod kutusu içinde görünecek şekilde) düzenledim.
-
-Aşağıdaki metni olduğu gibi kopyalayıp README.md dosyanıza yapıştırabilirsiniz.
 
 Markdown
 
