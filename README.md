@@ -85,8 +85,6 @@ Used to generate high-quality, publication-ready visualizations.
 
 The workflow is divided into **two sequential Python scripts**.
 
----
-
 ### 🔹 Phase 1: Preprocessing & Global Cell Clustering
 
 **File:** `1_preprocessing_and_clustering.py`
@@ -99,7 +97,7 @@ Loads raw data, performs quality control (mitochondrial ratio, gene counts), nor
 python 1_preprocessing_and_clustering.py
 ```
 --- 
-📊 6. Results and Outputs <a name="6-outputs"></a>
+## 📊 6. Results and Outputs <a name="6-outputs"></a>
 Successful execution will automatically generate a results/ folder containing the following:
 
 Global Cell Atlas
@@ -118,7 +116,8 @@ Pseudotime Tree: A continuous map (ForceAtlas2) showing how cells transition fro
 
 --- 
 
-📝 7. Notes & Acknowledgements <a name="7-notes"></a>
+## 📝 7. Notes & Acknowledgements <a name="7-notes"></a>
+
 Auto-Tune Resolution: The sub-clustering algorithm features a dynamic "binary search" logic to automatically find the optimal Leiden resolution for a target number of clusters.
 
 Rare Cell Preservation: Filtering parameters are optimized to preserve rare cell types that might otherwise be lost during strict quality control.
