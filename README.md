@@ -48,13 +48,19 @@ You can customize sample names and condition labels directly within the configur
 Using a **Conda** environment is highly recommended for the reproducibility of the analyses. Python 3.10 or higher is required.
 
 ```bash
-# 1. Create a new conda environment
+# 1. Create a new conda environment (Python 3.10 is recommended for package compatibility)
 conda create -n sc_pipeline_env python=3.10
 conda activate sc_pipeline_env
 
-# 2. Install necessary libraries
-pip install scanpy pandas numpy matplotlib seaborn bbknn
-pip install fa2-modified  # Critical for robust Trajectory tree plots (ForceAtlas2)
+# 2. Install necessary libraries with specific versions for perfect reproducibility
+
+# Option A: Pure PIP Installation
+pip install scanpy==1.11.5 pandas==2.2.3 numpy==2.2.6 matplotlib==3.10.0 seaborn==0.13.2 bbknn==1.6.0 leidenalg==0.11.0 igraph==1.0.0
+pip install fa2-modified==0.4  # Critical for robust Trajectory tree plots (ForceAtlas2)
+
+# Option B: Conda + PIP Installation (Recommended for better stability with C++ backend)
+conda install -c conda-forge scanpy==1.11.5 pandas==2.2.3 numpy==2.2.6 matplotlib==3.10.0 seaborn==0.13.2 leidenalg==0.11.0 python-igraph==1.0.0 -y
+pip install bbknn==1.6.0 fa2-modified==0.4
 ```
 
 ---
@@ -102,30 +108,35 @@ python 2_trajectory_analysis.py
 
 --- 
 ## 📊 6. Results and Outputs <a name="6-outputs"></a>
-Successful execution will automatically generate a results/ folder containing the following:
 
-**Global Cell Atlas**
+Successful execution will automatically generate a `results/` folder containing the following high-quality, publication-ready visualizations:
 
-**t-SNE / UMAP Embeddings:** Visualizations showing the overall cellular diversity.
+### Global Cell Atlas
+* **t-SNE / UMAP Embeddings:** Visualizations showing overall cellular diversity across all integrated datasets.
+  
+* **Condition-Split Plots:** Side-by-side t-SNE comparisons of different experimental groups (e.g., Control vs. Treated) on the same coordinate scale.
+  
+* **Cellular Proportions:** Stacked bar charts quantifying the percentage shifts in cell populations between conditions.
+  
+* **Marker Gene Dotplots:** A comprehensive summary of key differentially expressed genes used for automated cluster annotation.
 
-**Condition Split Plots:** Side-by-side comparisons of different experimental groups (e.g., Control vs. Treated).
-
-**Marker Gene Dotplots:** A summary of top differentially expressed genes across all identified clusters.
-
-**Developmental Trajectory**
-
-**Transcription Factor (TF) Enrichment:** Plots showing active regulatory mechanisms.
-
-**Expression Dynamics:** Violin plots showing the expression of your Genes of Interest across different conditions.
-
-**Pseudotime Tree:** A continuous map (ForceAtlas2) showing how cells transition from State A to State B, colored by pseudotime gradients and gene expression.
+### Developmental Trajectory
+* **Transcription Factor (TF) Enrichment:** Dotplots showing active regulatory mechanisms and transcription factors across different time points/conditions.
+  
+* **Expression Dynamics:** Violin plots showing the expression levels of your *Genes of Interest* across specific cell subtypes.
+  
+* **Pseudotime Tree:** A continuous, branched map (ForceAtlas2) showing how cells transition from a Root state to terminal states, colored by pseudotime gradients and gene expression.
+  
+* **Expression vs. Pseudotime Scatter:** Dynamic scatter plots tracking how the expression of a specific gene changes as cells progress through the developmental timeline.
 
 --- 
 
 ## 📝 7. Notes & Acknowledgements <a name="7-notes"></a>
 
-**Auto-Tune Resolution:** The sub-clustering algorithm features a dynamic "binary search" logic to automatically find the optimal Leiden resolution for a target number of clusters.
-
-**Rare Cell Preservation:** Filtering parameters are optimized to preserve rare cell types that might otherwise be lost during strict quality control.
+* **Auto-Tune Resolution:** The sub-clustering algorithm (Phase 2) features a dynamic "binary search" logic to automatically find the optimal Leiden resolution required to achieve a user-defined target number of clusters.
+  
+* **Rare Cell Preservation:** During Phase 1, the Leiden clustering resolution is intentionally kept high (res=2.0), and specific QC thresholds are optimized to preserve rare cell types that might otherwise be filtered out.
+  
+* **Trajectory Branching Optimization:** The neighborhood graph parameters (e.g., `n_neighbors=10`) are fine-tuned to ensure the PAGA/ForceAtlas2 algorithms can accurately calculate structural branches rather than forcing cells into a single linear trajectory.
 
 **Contact / Author:** Pipeline developed and maintained by [Onur Yıldırım](https://github.com/Joyboy-91) during an internship at the Adebali Lab, Sabancı University.
