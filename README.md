@@ -56,7 +56,7 @@ conda activate sc_pipeline_env
 
 # Option A: Pure PIP Installation
 pip install scanpy==1.11.5 pandas==2.2.3 numpy==2.2.6 matplotlib==3.10.0 seaborn==0.13.2 bbknn==1.6.0 leidenalg==0.11.0 igraph==1.0.0
-pip install fa2-modified==0.4  # Critical for robust Trajectory tree plots (ForceAtlas2)
+pip install fa2-modified==0.4 
 
 # Option B: Conda + PIP Installation (Recommended for better stability with C++ backend)
 conda install -c conda-forge scanpy==1.11.5 pandas==2.2.3 numpy==2.2.6 matplotlib==3.10.0 seaborn==0.13.2 leidenalg==0.11.0 python-igraph==1.0.0 -y
