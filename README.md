@@ -1,4 +1,4 @@
-# 🧬 Comprehensive Single-Cell RNA-Seq Analysis Pipeline
+#  Comprehensive Single-Cell RNA-Seq Analysis Pipeline
 
 ![Python](https://img.shields.io/badge/python-3.10.19-blue.svg)
 ![Scanpy](https://img.shields.io/badge/Scanpy-1.11+-green.svg)
@@ -7,7 +7,7 @@ This repository provides an end-to-end analytical pipeline for **Single-Cell RNA
 
 ---
 
-## 📖 Table of Contents
+##  Table of Contents
 1. [Introduction: What is scRNA-seq?](#1-introduction)
 2. [Dataset & Inputs](#2-dataset-inputs)
 3. [Requirements & Setup (Environment)](#3-environment)
@@ -18,7 +18,7 @@ This repository provides an end-to-end analytical pipeline for **Single-Cell RNA
 
 ---
 
-## 🔬 1. Introduction: What is Single-Cell RNA Sequencing? <a name="1-introduction"></a>
+##  1. Introduction: What is Single-Cell RNA Sequencing? <a name="1-introduction"></a>
 
 Traditional RNA sequencing (Bulk RNA-seq) gives the average gene expression of millions of cells in a tissue (like a "fruit smoothie"). **Single-Cell RNA Sequencing (scRNA-seq)**, on the other hand, tags and analyzes the genetic material of each cell individually (like identifying each "fruit" separately).
 
@@ -38,11 +38,11 @@ Before running this code, the biological samples go through a fascinating micro-
 
 ---
 
-## 📂 2. Dataset & Inputs <a name="2-dataset-inputs"></a>
+##  2. Dataset & Inputs <a name="2-dataset-inputs"></a>
 
 This pipeline is fully compatible with standard 10x Genomics output formats. To run the code successfully, your raw data folders must be placed inside the `datas/` directory.
 
-### 📥 Download the Dataset
+###  Download the Dataset
 The raw dataset used in this tutorial (515 MB uncompressed) is hosted in the GitHub Releases section to keep the repository lightweight. 
 
 **Option A: One-Liner for Terminal (Linux / Mac / WSL) - Recommended**
@@ -71,7 +71,7 @@ The pipeline uses a custom helper function (`load_and_standardize`) that automat
 
 ---
 
-## 💻 3. Requirements & Setup (Environment) <a name="3-environment"></a>
+##  3. Requirements & Setup (Environment) <a name="3-environment"></a>
 
 Using a **Conda** environment is highly recommended for the reproducibility of the analyses. Python 3.10 or higher is required.
 
@@ -93,7 +93,7 @@ pip install bbknn==1.6.0 fa2-modified==0.4
 
 ---
 
-## 🛠️ 4. Libraries Used <a name="4-libraries"></a>
+##  4. Libraries Used <a name="4-libraries"></a>
 
 **Scanpy (v1.11.5)** The core analytical toolkit used for the entire single-cell pipeline. Handled quality control, normalizations, Leiden clustering, and advanced trajectory inference tools including **PAGA** (topological skeleton) and **Diffusion Maps** (pseudotime calculation).
 
@@ -115,11 +115,7 @@ pip install bbknn==1.6.0 fa2-modified==0.4
 
 ---
 
-## 🚀 5. Code Workflow and Usage <a name="5-workflow"></a>
-
-The workflow is divided into **two sequential Python scripts**.
-
-### 🔹 Phase 1: Preprocessing & Global Cell Clustering
+##  5. Code Workflow and Usage <a name="5-workflow"></a>
 
 **Files:** [`1_preprocessing_and_clustering.py`](1_preprocessing_and_clustering.py) [`2_trajectory_analysis.py`](2_trajectory_analysis.py)
 
@@ -135,7 +131,7 @@ python 2_trajectory_analysis.py
 ```
 
 --- 
-## 📊 6. Results and Outputs <a name="6-outputs"></a>
+## 6. Results and Outputs <a name="6-outputs"></a>
 
 Successful execution will automatically generate a `results/` folder containing the following high-quality, publication-ready visualizations:
 
@@ -159,7 +155,7 @@ Successful execution will automatically generate a `results/` folder containing 
 
 --- 
 
-## 📝 7. Notes & Acknowledgements <a name="7-notes"></a>
+##  7. Notes & Acknowledgements <a name="7-notes"></a>
 
 * **Auto-Tune Resolution:** The sub-clustering algorithm (Phase 2) features a dynamic "binary search" logic to automatically find the optimal Leiden resolution required to achieve a user-defined target number of clusters.
   
