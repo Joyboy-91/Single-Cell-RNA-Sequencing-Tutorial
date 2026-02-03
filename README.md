@@ -1,4 +1,10 @@
-# Comprehensive Single-Cell RNA-Seq Analysis Pipeline
+Metninizdeki bozulan başlıkları, madde işaretlerini ve özellikle tüm kod bloklarını GitHub Markdown formatına uygun şekilde (siyah kod kutusu içinde görünecek şekilde) düzenledim.
+
+Aşağıdaki metni olduğu gibi kopyalayıp README.md dosyanıza yapıştırabilirsiniz.
+
+Markdown
+
+# 🧬 Comprehensive Single-Cell RNA-Seq Analysis Pipeline
 
 ![Python](https://img.shields.io/badge/python-3.9-blue.svg)
 ![Scanpy](https://img.shields.io/badge/Scanpy-1.9+-green.svg)
@@ -47,7 +53,7 @@ You can customize sample names and condition labels directly within the configur
 
 Using a **Conda** environment is highly recommended for the reproducibility of the analyses. Python 3.8 or higher is required.
 
-bash
+```bash
 # 1. Create a new conda environment
 conda create -n sc_pipeline_env python=3.9
 conda activate sc_pipeline_env
@@ -55,8 +61,7 @@ conda activate sc_pipeline_env
 # 2. Install necessary libraries
 pip install scanpy pandas numpy matplotlib seaborn bbknn
 pip install fa2  # Critical for robust Trajectory tree plots (ForceAtlas2)!
-
-4. Libraries Used <a name="4-libraries"></a>
+🛠️ 4. Libraries Used <a name="4-libraries"></a>
 Scanpy: The core library for scRNA-seq data analysis (QC, normalization, visualization).
 
 BBKNN: For "Batch Effect" correction, ensuring biological conditions are integrated smoothly without technical artifacts.
@@ -75,13 +80,21 @@ File: 1_preprocessing_and_clustering.py
 
 Operation: Loads raw data, filters out low-quality cells/genes (QC based on mitochondrial ratio and gene counts), normalizes the data, and applies BBKNN for batch correction. It then clusters cells using t-SNE/UMAP and generates gene expression dot plots for automated cell type annotation.
 
-Run:  ```bash python "1_preprocessing_and_clustering.py" ```
+Run:
 
+Bash
 
-### Phase 2: Sub-clustering & Trajectory Inference
-* **File:** `2_trajectory_analysis.py`
-* **Operation:** Extracts a specific cellular subset of interest (e.g., a specific lineage) from Phase 1. Performs high-resolution sub-clustering. Calculates the developmental path from a starting state (Root) to differentiated states using **PAGA** and **Diffusion Maps** (Pseudotime).
-* **Run:**  ```bash python "2_trajectory_analysis.py" ```
+python "1_preprocessing_and_clustering.py"
+Phase 2: Sub-clustering & Trajectory Inference
+File: 2_trajectory_analysis.py
+
+Operation: Extracts a specific cellular subset of interest (e.g., a specific lineage) from Phase 1. Performs high-resolution sub-clustering. Calculates the developmental path from a starting state (Root) to differentiated states using PAGA and Diffusion Maps (Pseudotime).
+
+Run:
+
+Bash
+
+python "2_trajectory_analysis.py"
 📊 6. Results and Outputs <a name="6-outputs"></a>
 Successful execution will automatically generate a results/ folder containing the following:
 
@@ -103,11 +116,3 @@ Pseudotime Tree: A continuous map (ForceAtlas2) showing how cells transition fro
 Auto-Tune Resolution: The sub-clustering algorithm features a dynamic "binary search" logic to automatically find the optimal Leiden resolution for a target number of clusters.
 
 Rare Cell Preservation: Filtering parameters are optimized to preserve rare cell types that might otherwise be lost during strict quality control.
-
-Contact / Author: Pipeline developed and maintained by [Your Name/GitHub Handle].
-```markdown
-* Title
-  * [Part 1](link_to_part_1)
-  * [Part 2](link_to_part_2)
-```
-
