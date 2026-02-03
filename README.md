@@ -43,8 +43,10 @@ wget [https://github.com/Joyboy-91/Single-Cell-RNA-Sequencing-Tutorial/releases/
 tar -xzvf datas.tar.gz
 ```
 
-1. **Option B: Manual Download (Windows) `datas.tar.gz`](https://github.com/Joyboy-91/Single-Cell-RNA-Sequencing-Tutorial/releases/download/v1.0.0/datas.tar.gz)**
-2. Place the downloaded file in your project folder and extract it so that the `datas/` folder is visible.
+**Option B: Manual Download (Windows) `datas.tar.gz`]
+(https://github.com/Joyboy-91/Single-Cell-RNA-Sequencing-Tutorial/releases/download/v1.0.0/datas.tar.gz)**
+
+Place the downloaded file in your project folder and extract it so that the `datas/` folder is visible.
 
 **To extract via Terminal (Linux/Mac/WSL):**
 ```bash
