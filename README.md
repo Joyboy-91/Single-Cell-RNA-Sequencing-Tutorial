@@ -118,3 +118,5 @@ Successful execution will automatically generate a results/ folder containing th
 **Auto-Tune Resolution:** The sub-clustering algorithm features a dynamic "binary search" logic to automatically find the optimal Leiden resolution for a target number of clusters.
 
 **Rare Cell Preservation:** Filtering parameters are optimized to preserve rare cell types that might otherwise be lost during strict quality control.
+
+**Contact / Author:** Pipeline developed and maintained by [Your Name/GitHub Handle].
