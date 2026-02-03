@@ -33,6 +33,17 @@ Traditional RNA sequencing (Bulk RNA-seq) gives the average gene expression of m
 
 This pipeline is fully compatible with standard 10x Genomics output formats. To run the code successfully, your raw data folders must be placed inside the `datas/` directory.
 
+### 📥 Download the Dataset
+The raw dataset used in this tutorial (515 MB uncompressed) is hosted in the GitHub Releases section to keep the repository lightweight. 
+
+1. **[Click here to download `datas.tar.gz`](https://github.com/Joyboy-91/Single-Cell-RNA-Sequencing-Tutorial/releases/download/v1.0.0/datas.tar.gz)**
+2. Place the downloaded file in your project folder and extract it so that the `datas/` folder is visible.
+
+**To extract via Terminal (Linux/Mac/WSL):**
+```bash
+tar -xzvf datas.tar.gz
+```
+
 **Supported Input Formats:**
 * **10x CellRanger Outputs:** The standard trio of `matrix.mtx`, `barcodes.tsv`, and `features.tsv` (or `genes.tsv`).
 * **AnnData:** Pre-processed `.h5ad` files can also be integrated directly.
