@@ -87,7 +87,7 @@ The workflow is divided into **two sequential Python scripts**.
 
 ### 🔹 Phase 1: Preprocessing & Global Cell Clustering
 
-**File:** [`1_preprocessing_and_clustering.py`](1_preprocessing_and_clustering.py) [`2_trajectory_analysis.py`](2_trajectory_analysis.py)
+**Files:** [`1_preprocessing_and_clustering.py`](1_preprocessing_and_clustering.py) [`2_trajectory_analysis.py`](2_trajectory_analysis.py)
 
 **Operation:** The pipeline loads raw single-cell data, performs rigorous quality control, normalizes expression, and corrects batch effects using **BBKNN**. It maps global cell populations via high-resolution **Leiden** clustering and **t-SNE/UMAP** embeddings, auto-annotating cell types with marker genes. After isolating a specific target subset, the workflow executes deep sub-clustering and infers developmental/disease trajectories from a root state using **PAGA** and **Diffusion Maps (Pseudotime)**. Finally, it visualizes cellular transition dynamics and gene expression changes through **ForceAtlas2** branched tree structures and condition-split scatter plots.
 
@@ -105,6 +105,7 @@ python 2_trajectory_analysis.py
 Successful execution will automatically generate a results/ folder containing the following:
 
 **Global Cell Atlas**
+
 **t-SNE / UMAP Embeddings:** Visualizations showing the overall cellular diversity.
 
 **Condition Split Plots:** Side-by-side comparisons of different experimental groups (e.g., Control vs. Treated).
