@@ -53,7 +53,7 @@ You can customize sample names and condition labels directly within the configur
 
 Using a **Conda** environment is highly recommended for the reproducibility of the analyses. Python 3.8 or higher is required.
 
-```bash
+bash
 # 1. Create a new conda environment
 conda create -n sc_pipeline_env python=3.9
 conda activate sc_pipeline_env
