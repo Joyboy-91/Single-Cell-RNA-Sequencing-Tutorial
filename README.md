@@ -53,14 +53,14 @@ You can customize sample names and condition labels directly within the configur
 
 Using a **Conda** environment is highly recommended for the reproducibility of the analyses. Python 3.8 or higher is required.
 
-bash
 # 1. Create a new conda environment
 conda create -n sc_pipeline_env python=3.9
 conda activate sc_pipeline_env
 
 # 2. Install necessary libraries
 pip install scanpy pandas numpy matplotlib seaborn bbknn
-pip install fa2  # Critical for robust Trajectory tree plots (ForceAtlas2)!
+pip install fa2  # Critical for robust Trajectory tree plots (ForceAtlas2)
+
 ---
 
 ## 🛠️ 4. Libraries Used <a name="4-libraries"></a>
