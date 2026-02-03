@@ -88,7 +88,7 @@ The workflow is divided into **two sequential Python scripts**.
 ### 🔹 Phase 1: Preprocessing & Global Cell Clustering
 
 **File:** [`1_preprocessing_and_clustering.py`](1_preprocessing_and_clustering.py)
-**File:** [2_trajectory_analysis.py](2_trajectory_analysis.py)
+**File:** [`2_trajectory_analysis.py`](2_trajectory_analysis.py)
 
 **Operation:** Loads raw data, performs quality control (mitochondrial ratio, gene counts), normalizes expression values, applies **BBKNN** batch correction, performs clustering (t-SNE / UMAP), and generates marker gene dot plots for automated cell type annotation.
 
