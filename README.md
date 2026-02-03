@@ -54,7 +54,7 @@ conda activate sc_pipeline_env
 
 # 2. Install necessary libraries
 pip install scanpy pandas numpy matplotlib seaborn bbknn
-pip install fa2  # Critical for robust Trajectory tree plots (ForceAtlas2)
+pip install fa2-modified  # Critical for robust Trajectory tree plots (ForceAtlas2)
 ```
 
 ---
@@ -67,7 +67,7 @@ The core library for scRNA-seq data analysis (quality control, normalization, cl
 **BBKNN**  
 Used for batch effect correction to integrate multiple datasets while preserving biological variation.
 
-**fa2 (ForceAtlas2)**  
+**fa2-modified (ForceAtlas2)**  
 Graph-based layout engine for visualizing developmental trajectories and pseudotime trees.
 
 **Pandas & NumPy**  
