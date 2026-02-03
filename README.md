@@ -1,6 +1,3 @@
-
-Markdown
-
 # 🧬 Comprehensive Single-Cell RNA-Seq Analysis Pipeline
 
 ![Python](https://img.shields.io/badge/python-3.9-blue.svg)
