@@ -100,24 +100,24 @@ python 1_preprocessing_and_clustering.py
 ## 📊 6. Results and Outputs <a name="6-outputs"></a>
 Successful execution will automatically generate a results/ folder containing the following:
 
-Global Cell Atlas
-t-SNE / UMAP Embeddings: Visualizations showing the overall cellular diversity.
+**Global Cell Atlas**
+**t-SNE / UMAP Embeddings:** Visualizations showing the overall cellular diversity.
 
-Condition Split Plots: Side-by-side comparisons of different experimental groups (e.g., Control vs. Treated).
+**Condition Split Plots:** Side-by-side comparisons of different experimental groups (e.g., Control vs. Treated).
 
-Marker Gene Dotplots: A summary of top differentially expressed genes across all identified clusters.
+**Marker Gene Dotplots:** A summary of top differentially expressed genes across all identified clusters.
 
-Developmental Trajectory
-Transcription Factor (TF) Enrichment: Plots showing active regulatory mechanisms.
+**Developmental Trajectory**
+**Transcription Factor (TF) Enrichment:** Plots showing active regulatory mechanisms.
 
-Expression Dynamics: Violin plots showing the expression of your Genes of Interest across different conditions.
+**Expression Dynamics:** Violin plots showing the expression of your Genes of Interest across different conditions.
 
-Pseudotime Tree: A continuous map (ForceAtlas2) showing how cells transition from State A to State B, colored by pseudotime gradients and gene expression.
+**Pseudotime Tree:** A continuous map (ForceAtlas2) showing how cells transition from State A to State B, colored by pseudotime gradients and gene expression.
 
 --- 
 
 ## 📝 7. Notes & Acknowledgements <a name="7-notes"></a>
 
-Auto-Tune Resolution: The sub-clustering algorithm features a dynamic "binary search" logic to automatically find the optimal Leiden resolution for a target number of clusters.
+**Auto-Tune Resolution:** The sub-clustering algorithm features a dynamic "binary search" logic to automatically find the optimal Leiden resolution for a target number of clusters.
 
-Rare Cell Preservation: Filtering parameters are optimized to preserve rare cell types that might otherwise be lost during strict quality control.
+**Rare Cell Preservation:** Filtering parameters are optimized to preserve rare cell types that might otherwise be lost during strict quality control.
