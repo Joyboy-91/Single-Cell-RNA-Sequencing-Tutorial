@@ -28,6 +28,7 @@ Traditional RNA sequencing (Bulk RNA-seq) gives the average gene expression of m
 * **To track cellular fate decisions:** Uses advanced **Pseudotime and Trajectory Analysis** to map how cells differentiate or respond to disease states over time.
 
 **How is the Raw Data Generated? (The 10x Genomics Workflow)**
+
 Before running this code, the biological samples go through a fascinating micro-engineering process:
 1. **Dissociation:** Complex tissues are enzymatically digested into a single-cell suspension.
 2. **Droplet Encapsulation:** Each cell is trapped inside a microscopic oil droplet alongside a specialized gel bead.
