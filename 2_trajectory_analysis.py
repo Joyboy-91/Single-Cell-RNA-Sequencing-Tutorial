@@ -1,0 +1,538 @@
+import scanpy as sc
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pathlib import Path
+import bbknn
+import sys
+
+# ============================================================
+# 1. SETUP & LIBRARY CHECK (The "Monkey Patch" for fa2)
+# ============================================================
+
+try:
+    # Priority 1: Try 'fa2_modified' library (optimized for modern Scanpy)
+    import fa2_modified as fa2_real
+    
+    # CRITICAL: Monkey Patching. 
+    # We trick the system into thinking 'fa2_modified' is the standard 'fa2'.
+    # This allows Scanpy's internal function (sc.tl.draw_graph) to use the modified version automatically.
+    sys.modules['fa2'] = fa2_real
+    import fa2 # Can now be imported without error
+    
+    print(f"SUCCESS: 'fa2-modified' found and registered as 'fa2'.")
+
+except ImportError:
+    try:
+        # Priority 2: Fallback to standard 'fa2'
+        import fa2
+        print(f"SUCCESS: 'fa2' loaded via standard import.")
+    except ImportError:
+        # Case 3: If no fa2 is found, use Fruchterman-Reingold (built-in)
+        print("WARNING: Neither 'fa2' nor 'fa2_modified' could be found.")
+        print("-> Analysis will proceed with 'fr' (Fruchterman-Reingold) layout.")
+
+# Configure Scanpy aesthetics for publication
+sc.settings.verbosity = 3
+sc.set_figure_params(dpi=300, fontsize=8, facecolor="white", frameon=False, vector_friendly=True)
+
+# Define and create output directories
+BASE_DIR = Path.cwd()
+RESULT_DIR = Path.home() / "results"
+RESULT_DIR.mkdir(parents=True, exist_ok=True)
+
+# Create subdirectories for organized outputs
+for subdir in ["2_trajectory_analysis"]:
+    (RESULT_DIR / subdir).mkdir(exist_ok=True)
+
+print(f"Results will be saved to: {RESULT_DIR}")
+
+# ============================================================
+# 2. HELPER FUNCTIONS (Phase 1: Atlas Generation)
+# ============================================================
+
+def load_and_standardize(path, sample_id, condition, species):
+    """Loads 10x matrix, standardizes gene symbols, and injects metadata."""
+    try:
+        adata = sc.read_10x_mtx(BASE_DIR / path, var_names="gene_symbols", cache=False)
+        adata.var_names_make_unique()
+        adata.var_names = adata.var_names.str.upper() # Cross-species standardization
+        adata.obs["sample_id"] = sample_id
+        adata.obs["condition"] = condition
+        adata.obs["species"] = species
+        return adata
+    except Exception as e:
+        print(f"ERROR: {path} could not be loaded -> {e}")
+        return None
+
+def process_basic(adata, batch_key):
+    """Performs standard QC, Normalization, Batch Correction (BBKNN), and Clustering."""
+    # 1. QC & Filtering
+    adata.var["mt"] = adata.var_names.str.startswith("MT-")
+    sc.pp.calculate_qc_metrics(adata, qc_vars=["mt"], inplace=True)
+    
+    print(f"Cells before filter: {adata.n_obs}")
+    # Retain cells with n_genes > 400 to preserve rare cell populations
+    adata = adata[
+        (adata.obs.total_counts > 800) & 
+        (adata.obs.total_counts < 20000) & 
+        (adata.obs.pct_counts_mt < 15) & 
+        (adata.obs.n_genes_by_counts > 400) 
+    ].copy()
+    print(f"Cells after filter: {adata.n_obs}")
+    
+    # 2. Normalization & Transformation
+    sc.pp.normalize_total(adata, target_sum=1e4)
+    sc.pp.log1p(adata)
+    adata.raw = adata # Save raw counts for DEG analysis
+    
+    # 3. Highly Variable Genes (HVG)
+    sc.pp.highly_variable_genes(adata, n_top_genes=2500, flavor="seurat_v3")
+    
+    # 4. Regress out technical artifacts & Scale
+    sc.pp.regress_out(adata, ["total_counts", "pct_counts_mt"])
+    sc.pp.scale(adata) 
+    
+    # 5. PCA
+    sc.pp.pca(adata, mask_var="highly_variable")
+    
+    # 6. Batch Correction (BBKNN)
+    print("Batch correction (BBKNN)...")
+    bbknn.bbknn(adata, batch_key=batch_key, neighbors_within_batch=5, n_pcs=30, trim=0)
+    
+    # 7. Embeddings & Leiden Clustering
+    sc.tl.tsne(adata, n_pcs=30) 
+    sc.tl.umap(adata)
+    sc.tl.leiden(adata, resolution=1.2) 
+    
+    return adata
+
+def auto_annotate_cell_types(adata, marker_dict):
+    """Annotates clusters based on the maximum mean expression of marker gene sets."""
+    old_scores = [c for c in adata.obs.columns if c.startswith("score_")]
+    if old_scores: adata.obs.drop(columns=old_scores, inplace=True)
+    
+    for cell_type, genes in marker_dict.items():
+        valid_genes = [g for g in genes if g in adata.var_names]
+        if len(valid_genes) > 0:
+            sc.tl.score_genes(adata, gene_list=valid_genes, score_name=f"score_{cell_type}")
+    
+    score_cols = [col for col in adata.obs.columns if col.startswith("score_")]
+    if not score_cols: return adata
+
+    cluster_scores = adata.obs.groupby("leiden")[score_cols].mean()
+    cluster_mapping = {}
+    
+    # Map each cluster to the cell type with the highest score
+    for cluster in cluster_scores.index:
+        best_score_col = cluster_scores.loc[cluster].idxmax()
+        cell_name = best_score_col.replace("score_", "")
+        cluster_mapping[cluster] = cell_name
+    
+    adata.obs["cell_type"] = adata.obs["leiden"].map(cluster_mapping)
+    return adata
+
+def plot_split_tsne(adata, keys, key_col, color_col, save_path, figsize_per_plot=(4, 4)):
+    """
+    Draws condition-specific t-SNE plots side-by-side.
+    Ensures all plots share the exact same global coordinate limits.
+    """
+    n_plots = len(keys)
+    fig, axes = plt.subplots(1, n_plots, figsize=(figsize_per_plot[0] * n_plots, figsize_per_plot[1]))
+    
+    if n_plots == 1: axes = [axes]
+    
+    # Calculate global t-SNE limits with a 5% padding
+    x_min, x_max = adata.obsm['X_tsne'][:, 0].min(), adata.obsm['X_tsne'][:, 0].max()
+    y_min, y_max = adata.obsm['X_tsne'][:, 1].min(), adata.obsm['X_tsne'][:, 1].max()
+    pad_x = (x_max - x_min) * 0.05
+    pad_y = (y_max - y_min) * 0.05
+
+    for i, key in enumerate(keys):
+        ax = axes[i]
+        subset = adata[adata.obs[key_col] == key]
+        
+        sc.pl.tsne(
+            subset, 
+            color=color_col, 
+            ax=ax, 
+            show=False, 
+            title=key, 
+            frameon=False,
+            legend_loc="none" if i < n_plots - 1 else "right margin", 
+            s=50 
+        )
+        
+        # Apply standard limits to all plots
+        ax.set_xlim(x_min - pad_x, x_max + pad_x)
+        ax.set_ylim(y_min - pad_y, y_max + pad_y)
+        ax.set_xlabel("tSNE_1")
+        if i == 0: ax.set_ylabel("tSNE_2")
+        else: ax.set_ylabel("")
+            
+    plt.tight_layout()
+    plt.savefig(save_path, bbox_inches="tight")
+    plt.close()
+    print(f"Saved split t-SNE to: {save_path}")
+
+# ============================================================
+# MARKER LISTS
+# ============================================================
+MARKERS_RAT = {
+    "Keratinocytes (KC)": ["KRT1", "KRT14", "KRT5"],
+    "Fibroblasts (FB)": ["DCN", "APOD", "CRABP1", "COL1A1"],
+    "Endothelial (EC)": ["TM4SF1", "CDH5", "CD93"],
+    "Pericytes (PC)": ["RGS5", "DES", "PDGFRB"],
+    "Schwann (SC)": ["GATM", "MPZ", "PLP1"],        
+    "Smooth_Muscle (SMC)": ["MYH11", "MYL9", "TAGLN"],
+    "Myoblasts (MB)": ["MYF5", "JSRP1", "CDH15"],
+    "Neural (NC)": ["CMTM5", "BCHE", "AJAP1"],
+    "Macrophages (Mø)": ["C1QC", "CD68", "PF4", "MRC1", "CD163"], 
+    "Neutrophils (NEUT)": ["S100A8", "S100A9", "LYZ2"],
+    "T_Cells (TC)": ["CD3D", "CD3E", "ICOS"],
+    "B_Cells (BC)": ["TYROBP", "IFI30", "IGHM"],
+    "Dendritic (DC)": ["CD207", "CD74", "RT1-DB1", "FLT3"]   
+}
+
+MARKERS_HUMAN = {
+    "Keratinocytes (KC)": ["KRT14", "KRT5", "KRT1"],
+    "Fibroblasts (FB)": ["DCN", "APOD", "COL1A1"],
+    "Endothelial (EC)": ["CDH5", "CD93"],
+    "Sweat_Gland (SGC)": ["DCD","AQP5"], 
+    "Smooth_Muscle (SMC)": ["MYL9", "TAGLN", "ACTA2"],
+    "Neural (NC)": ["CDH19", "SOX10", "PMP22"],
+    "T_Cells (TC)": ["CD3D", "CD3E", "CD3G", "CCL5"],
+    "NK_Cells (NK)": ["CD3D", "CD3E", "CD3G", "CCL5", "GZMB"],
+    "Macrophages (Mø)": ["CD74", "AIF1", "CD68", "CD163"],
+    "Mast_Cells (MC)": ["TPSAB1", "TPSB2", "CPA3", "IL1RL1"],
+    "Neutrophils (NEUT)": ["KRT14", "KRT5", "KRT1", "S100A8", "S100A9"]
+}
+
+# ============================================================
+# 3. FIGURE 1: RAT ATLAS GENERATION
+# ============================================================
+print("\n--- FIGURE 1: RAT ANALYSIS ---")
+rat_samples = [
+    load_and_standardize("datas/rat/GSM5814220_con/", "Con", "Con", "rat"),
+    load_and_standardize("datas/rat/GSM5814221_IR_7d/", "7d", "7d", "rat"),
+    load_and_standardize("datas/rat/GSM5814222_IR_14d/", "14d", "14d", "rat"),
+    load_and_standardize("datas/rat/GSM5814223_IR_28d/", "28d", "28d", "rat"),
+]
+adata_rat = sc.concat([r for r in rat_samples if r is not None], label="batch")
+adata_rat = process_basic(adata_rat, batch_key="batch")
+adata_rat = auto_annotate_cell_types(adata_rat, MARKERS_RAT)
+
+# --- Plots ---
+sc.pl.tsne(adata_rat, color=["cell_type"], frameon=False, show=False, title="Rat Skin Atlas")
+
+plot_split_tsne(adata_rat, keys=["Con", "7d", "14d", "28d"], key_col="condition", color_col="cell_type", 
+                save_path=RESULT_DIR / "Fig1_Rat/Fig1D_tSNE_Split.png")
+
+# --- Cell Proportion Chart ---
+counts_rat = adata_rat.obs.groupby(["condition", "cell_type"]).size().unstack(fill_value=0)
+props_rat = counts_rat.div(counts_rat.sum(axis=1), axis=0) * 100
+props_rat = props_rat.loc[["Con", "7d", "14d", "28d"]] 
+props_rat.plot(kind="bar", stacked=True, figsize=(8, 5), colormap="tab20")
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.title("Rat Cell Type Proportions")
+plt.tight_layout()
+
+# CRITICAL STEP: Extract Rat Fibroblasts for Trajectory Analysis
+print("   > Extracting Rat Fibroblasts...")
+rat_fibro = adata_rat[adata_rat.obs["cell_type"].str.contains("Fibro", na=False)].copy()
+# Reset raw ensures we only cluster on Fibroblast-specific genes in Phase 2
+if rat_fibro.raw is not None: rat_fibro = rat_fibro.raw.to_adata()
+
+# ============================================================
+# 4. FIGURE 2: HUMAN ATLAS GENERATION
+# ============================================================
+print("\n--- FIGURE 2: HUMAN ANALYSIS ---")
+human_samples = [
+    load_and_standardize("datas/human/GSM5821748_con/", "Con", "Con", "human"),
+    load_and_standardize("datas/human/GSM5821749_IR/", "IR", "IR", "human"),
+]
+adata_human = sc.concat([h for h in human_samples if h is not None], label="batch")
+adata_human = process_basic(adata_human, batch_key="batch")
+adata_human = auto_annotate_cell_types(adata_human, MARKERS_HUMAN)
+
+# --- Plots ---
+sc.pl.tsne(adata_human, color=["cell_type"], frameon=False, show=False, title="Human Skin Atlas")
+
+plot_split_tsne(adata_human, keys=["Con", "IR"], key_col="condition", color_col="cell_type", 
+                save_path=RESULT_DIR / "Fig2_Human/Fig2_tSNE_Split.png")
+
+# --- Cell Proportion Chart ---
+counts_human = adata_human.obs.groupby(["condition", "cell_type"]).size().unstack(fill_value=0)
+props_human = counts_human.div(counts_human.sum(axis=1), axis=0) * 100
+props_human = props_human.loc[["Con", "IR"]] 
+props_human.plot(kind="bar", stacked=True, figsize=(6, 5), colormap="tab20")
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.title("Human Cell Type Proportions")
+plt.tight_layout()
+
+# CRITICAL STEP: Extract Human Fibroblasts for Trajectory Analysis
+print("   > Extracting Human Fibroblasts...")
+human_fibro = adata_human[adata_human.obs["cell_type"].str.contains("Fibro", na=False)].copy()
+if human_fibro.raw is not None: human_fibro = human_fibro.raw.to_adata()
+
+# ============================================================
+# 5. FIGURE 3: FIBROBLAST SUBTYPING & TRAJECTORY (PHASE 2)
+# ============================================================
+print("\n--- FIGURE 3: FIBROBLAST DETAILED ANALYSIS ---")
+
+def auto_tune_resolution(adata, target_clusters):
+    """
+    Implements a binary search algorithm to automatically find the optimal 
+    Leiden resolution required to achieve a target number of sub-clusters.
+    """
+    res_low, res_high = 0.1, 2.0
+    for _ in range(15): # Max 15 attempts
+        current_res = (res_low + res_high) / 2
+        sc.tl.leiden(adata, resolution=current_res, key_added="sub_leiden")
+        n_clusters = len(adata.obs['sub_leiden'].unique())
+        
+        if n_clusters == target_clusters: return current_res
+        if n_clusters > target_clusters: res_high = current_res # Decrease resolution
+        else: res_low = current_res # Increase resolution
+    return current_res
+
+def analyze_fibroblast_subtypes_branched(adata, species_name):
+    """
+    Performs deep sub-clustering on Fibroblasts and calculates the 
+    developmental trajectory using PAGA, Diffusion Maps, and ForceAtlas2.
+    """
+    print(f"   > Processing {species_name} Fibroblasts...")
+    
+    # 1. Preprocessing for Subclustering
+    sc.pp.filter_genes(adata, min_cells=3)
+    sc.pp.normalize_total(adata, target_sum=1e4)
+    sc.pp.log1p(adata)
+    adata.raw = adata 
+    
+    sc.pp.highly_variable_genes(adata, n_top_genes=1500, flavor='seurat')
+    sc.pp.scale(adata)
+    sc.pp.pca(adata)
+
+    # 2. NEIGHBORHOOD GRAPH
+    # CRITICAL: n_neighbors is explicitly set to 10. 
+    # A smaller neighborhood forces the network to branch out (tree-like structure) 
+    # rather than collapsing into a dense, unreadable blob.
+    sc.pp.neighbors(adata, n_neighbors=10, use_rep="X_pca") 
+    
+    # 3. CLUSTERING (Target: Rat=7, Human=5)
+    target = 7 if species_name == "Rat" else 5
+    res = auto_tune_resolution(adata, target)
+    sc.tl.leiden(adata, resolution=res, key_added="sub_leiden")
+    
+    # Rename clusters to FB1, FB2...
+    cluster_map = {str(c): f"FB{i+1}" for i, c in enumerate(sorted(adata.obs['sub_leiden'].unique().astype(int)))}
+    adata.obs["sub_type"] = adata.obs["sub_leiden"].map(cluster_map)
+    
+    # 4. PAGA (Topological Skeleton)
+    sc.tl.paga(adata, groups="sub_type")
+    sc.pl.paga(adata, plot=False) 
+    
+    # 5. FORCEATLAS2 (Trajectory Embedding)
+    print(f"     > Calculating branched tree structure...")
+    layout_key = 'fr' # Default to Fruchterman-Reingold
+    if 'fa2' in locals() or 'fa2' in globals():
+        try:
+            # ForceAtlas2 creates much better biological trajectories
+            sc.tl.draw_graph(adata, init_pos='paga', layout='fa', random_state=42)
+            layout_key = 'fa'
+        except:
+            sc.tl.draw_graph(adata, init_pos='paga', layout='fr')
+    else:
+        sc.tl.draw_graph(adata, init_pos='paga', layout='fr')
+
+    # 6. PSEUDOTIME (Finding the Root)
+    # We define the 'Root' (time=0) as the cluster with the highest number of 'Control' cells.
+    con_counts = adata.obs.groupby("sub_type")["condition"].apply(lambda x: (x == "Con").sum())
+    root_clust = con_counts.idxmax()
+    root_cells = np.flatnonzero(adata.obs["sub_type"] == root_clust)
+    adata.uns["iroot"] = root_cells[0] if len(root_cells) > 0 else 0 # Set root cell
+    
+    # Calculate Diffusion Map & Pseudotime
+    sc.tl.diffmap(adata)
+    sc.tl.dpt(adata)
+    
+    # 7. t-SNE (For Fig 3C visualization)
+    sc.tl.tsne(adata, n_pcs=20)
+    
+    return adata
+
+# Execute the deep analysis
+rat_fibro = analyze_fibroblast_subtypes_branched(rat_fibro, "Rat")
+human_fibro = analyze_fibroblast_subtypes_branched(human_fibro, "Human")
+
+# ============================================================
+# 6. PLOTTING FIGURE 3 PANELS
+# ============================================================
+print("\n--- Generating Figure 3 Plots ---")
+
+# --- Fig 3A: TF Enrichment Dotplots ---
+RAT_TFS = ["BACH1", "ETS1", "NFKB1", "RFX5", "SMAD1", "STAT2", "ATF3", "FOS", "FOSB", "JUN", "JUND", "IRF7", "IRF1", "CEBPE", "HOXD4", "DLX5", "GRHL2", "NFE2L1", "POU3F1", "SREBF2"]
+HUMAN_TFS = ["EHF", "EMX2", "FOXA1", "HOXB3", "HOXB4", "HOXC6", "HOXC8", "HOXC9", "IRF6", "MESP1", "FOSL1", "NFE2L2", "NR2F1", "RARB", "SREBF2", "TEAD4", "MAFA", "NFATC1", "LHX9", "ETV3"]
+
+def plot_fig3a(adata, genes, filename, order):
+    """Plots Dotplots for Transcription Factor enrichment."""
+    valid = [g for g in genes if g in adata.raw.var_names]
+    present = [c for c in order if c in adata.obs["condition"].unique()]
+    adata.obs["condition"] = adata.obs["condition"].astype("category").cat.reorder_categories(present)
+    
+    if valid:
+        sc.pl.dotplot(adata, valid, groupby="condition", standard_scale="var", show=False, title="TF Enrichment")
+        plt.savefig(RESULT_DIR / f"2_trajectory_analysis/{filename}", bbox_inches="tight"); plt.close()
+
+plot_fig3a(rat_fibro, RAT_TFS, "Rat_TF.png", ["Con", "7d", "14d", "28d"])
+plot_fig3a(human_fibro, HUMAN_TFS, "Human_TF.png", ["Con", "IR"])
+
+# --- Fig 3B: Common DEGs ---
+COMMON_DEGS = ["NUR77", "NR4A1", "CDKN1A", "DPT", "S100A10", "PROCR"]
+
+# Plot Rat
+valid_rat = [g for g in COMMON_DEGS if g in rat_fibro.raw.var_names]
+if valid_rat:
+    sc.pl.violin(rat_fibro, valid_rat, groupby="condition", rotation=90, show=False, use_raw=True)
+    plt.savefig(RESULT_DIR / "2_trajectory_analysis/Rat_CommonDEGs.png", bbox_inches="tight"); plt.close()
+
+# Plot Human
+valid_human = [g for g in COMMON_DEGS if g in human_fibro.raw.var_names]
+if valid_human:
+    sc.pl.violin(human_fibro, valid_human, groupby="condition", rotation=90, show=False, use_raw=True)
+    plt.savefig(RESULT_DIR / "2_trajectory_analysis/Human_CommonDEGs.png", bbox_inches="tight"); plt.close()
+
+# --- Fig 3C: Subtypes t-SNE (Combined + Split) ---
+# Rat
+tsne_rat = sc.pl.tsne(rat_fibro, color="sub_type", legend_loc="on data", palette="tab10", 
+                      title="Rat Fibroblasts", return_fig=True, show=False)
+tsne_rat.savefig(RESULT_DIR / "2_trajectory_analysis/Rat_tSNE.png", bbox_inches="tight")
+plt.close(tsne_rat)
+
+plot_split_tsne(rat_fibro, keys=["Con", "7d", "14d", "28d"], key_col="condition", color_col="sub_type", 
+                save_path=RESULT_DIR / "2_trajectory_analysis/Rat_tSNE_Split.png")
+
+# Human
+tsne_human = sc.pl.tsne(human_fibro, color="sub_type", legend_loc="on data", palette="tab10", 
+                        title="Human Fibroblasts", return_fig=True, show=False)
+tsne_human.savefig(RESULT_DIR / "2_trajectory_analysis/Human_tSNE.png", bbox_inches="tight")
+plt.close(tsne_human)
+
+plot_split_tsne(human_fibro, keys=["Con", "IR"], key_col="condition", color_col="sub_type", 
+                save_path=RESULT_DIR / "2_trajectory_analysis/Human_tSNE_Split.png")
+
+# --- Fig 3D: Nur77 Violin ---
+def plot_nur77(adata, name):
+    gene = "NR4A1" if "NR4A1" in adata.raw.var_names else "NUR77"
+    if gene in adata.raw.var_names:
+        sc.pl.violin(adata, gene, groupby="sub_type", rotation=0, use_raw=True, palette="tab10", show=False)
+        plt.title(f"{name} Nur77 Expression")
+        plt.savefig(RESULT_DIR / f"2_trajectory_analysis/{name}_Nur77.png", bbox_inches="tight"); plt.close()
+
+plot_nur77(rat_fibro, "Rat")
+plot_nur77(human_fibro, "Human")
+
+# --- Fig 3E & 3F: Branched Trajectory Trees (Advanced Visualization) ---
+def plot_trajectory_branched(adata, name, label):
+    """Generates complex visual mapping of Pseudotime and Gene Expression on ForceAtlas2 layout."""
+    layout_key = 'fa' if 'X_draw_graph_fa' in adata.obsm else 'fr'
+    print(f"   > Plotting {name} branched trajectory using '{layout_key}'...")
+    
+    gene = "NR4A1" if "NR4A1" in adata.raw.var_names else "NUR77"
+
+    # 1. Pseudotime Trajectory (Cellular Clock)
+    sc.pl.draw_graph(adata, color="dpt_pseudotime", layout=layout_key, 
+                     frameon=False, show=False, cmap="viridis", 
+                     edges=True, edges_width=0.2, 
+                     title=f"{name} Pseudotime (Trajectory)")
+    plt.savefig(RESULT_DIR / f"2_trajectory_analysis/{label}_{name}_Pseudotime_Trajectory.png", bbox_inches="tight")
+    plt.close()
+    
+    # 2. Gene Expression Transformation (Log10 scale for better visual contrast)
+    if gene in adata.raw.var_names:
+        # Extract raw data matrix
+        raw_data = adata.raw[:, gene].X
+        if hasattr(raw_data, "toarray"): raw_data = raw_data.toarray()
+        raw_data = raw_data.flatten()
+        
+        # CRITICAL: Reverse ln(x+1) to get raw counts, then transform to log10(counts + 0.1)
+        # This specific transformation prevents low expressions from disappearing visually.
+        counts = np.expm1(raw_data)
+        custom_val = np.log10(counts + 0.1)
+        
+        # Add new column and plot the customized expression
+        plot_col_name = f"{gene}_log10"
+        adata.obs[plot_col_name] = custom_val
+
+        sc.pl.draw_graph(adata, color=plot_col_name, layout=layout_key, 
+                         frameon=False, show=False, cmap="viridis", 
+                         edges=True, edges_width=0.2, 
+                         title=f"{name} {gene} (log10(val+0.1))")
+        plt.savefig(RESULT_DIR / f"2_trajectory_analysis/{label}_{name}_{gene}_Trajectory.png", bbox_inches="tight")
+        plt.close()
+
+        # 3. Scatter Plot (Pseudotime vs Expression Trend)
+        plt.figure(figsize=(6, 4))
+        sc.pl.scatter(adata, x='dpt_pseudotime', y=plot_col_name, color='sub_type', 
+                      show=False, title=f"{name} {gene} across Pseudotime")
+        plt.xlabel("Pseudotime (Start -> End)")
+        plt.ylabel(f"{gene} Expression (log10(val+0.1))")
+        plt.savefig(RESULT_DIR / f"2_trajectory_analysis/{label}_{name}_{gene}_vs_Pseudotime_Scatter.png", bbox_inches="tight")
+        plt.close()
+    
+    # 4. Subtypes Mapped on Trajectory Tree
+    sc.pl.draw_graph(adata, color="sub_type", layout=layout_key, 
+                     frameon=False, show=False, palette="tab10", 
+                     edges=True, edges_width=0.3, 
+                     title=f"{name} Subtype Branches")
+    plt.savefig(RESULT_DIR / f"2_trajectory_analysis/{label}_{name}_Subtypes_Trajectory.png", bbox_inches="tight"); plt.close()
+
+    # 5. Condition Split on Trajectory (Temporal / Spatial changes)
+    if name == "Rat":
+        cond_order = ["Con", "7d", "14d", "28d"]
+    else:
+        cond_order = ["Con", "IR"]
+    
+    # Calculate global coordinates to lock axes for fair comparison
+    basis_key = f"X_draw_graph_{layout_key}"
+    x_min, x_max = adata.obsm[basis_key][:, 0].min(), adata.obsm[basis_key][:, 0].max()
+    y_min, y_max = adata.obsm[basis_key][:, 1].min(), adata.obsm[basis_key][:, 1].max()
+    pad_x = (x_max - x_min) * 0.05
+    pad_y = (y_max - y_min) * 0.05
+
+    # Draw plots side-by-side
+    n_conds = len(cond_order)
+    fig, axes = plt.subplots(1, n_conds, figsize=(4 * n_conds, 4))
+    if n_conds == 1: axes = [axes]
+
+    for i, cond in enumerate(cond_order):
+        ax = axes[i]
+        subset = adata[adata.obs["condition"] == cond]
+        
+        sc.pl.draw_graph(
+            subset, 
+            color="condition", 
+            layout=layout_key, 
+            ax=ax, 
+            show=False, 
+            title=cond, 
+            frameon=False, 
+            legend_loc="none", 
+            s=50
+        )
+        
+        # Apply the locked axes
+        ax.set_xlim(x_min - pad_x, x_max + pad_x)
+        ax.set_ylim(y_min - pad_y, y_max + pad_y)
+        ax.set_xlabel("")
+        ax.set_ylabel("")
+
+    plt.tight_layout()
+    plt.savefig(RESULT_DIR / f"2_trajectory_analysis/{label}_{name}_Condition_Split.png", bbox_inches="tight")
+    plt.close()
+
+plot_trajectory_branched(rat_fibro, "Rat", "E")
+plot_trajectory_branched(human_fibro, "Human", "F")
+
+print("\n--- ALL ANALYSES COMPLETE ---")
