@@ -1,7 +1,7 @@
 # 🧬 Comprehensive Single-Cell RNA-Seq Analysis Pipeline
 
 ![Python](https://img.shields.io/badge/python-3.10.19-blue.svg)
-![Scanpy](https://img.shields.io/badge/Scanpy-1.9+-green.svg)
+![Scanpy](https://img.shields.io/badge/Scanpy-1.11+-green.svg)
 
 This repository provides an end-to-end analytical pipeline for **Single-Cell RNA Sequencing (scRNA-seq)** data. It includes scripts for quality control, batch correction, dimensionality reduction, cell type annotation, and advanced trajectory inference (pseudotime) to study cellular differentiation and dynamics.
 
