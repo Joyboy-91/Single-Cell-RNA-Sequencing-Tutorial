@@ -21,6 +21,25 @@ This repository provides an end-to-end analytical pipeline for **Single-Cell RNA
 ##  1. Introduction: What is Single-Cell RNA Sequencing? <a name="1-introduction"></a>
 
 Traditional RNA sequencing (Bulk RNA-seq) gives the average gene expression of millions of cells in a tissue. **Single-Cell RNA Sequencing (scRNA-seq)**, on the other hand, tags and analyzes the genetic material of each cell individually.
+scRNA-seq vs. Spatial Transcriptomics: When to use which?
+
+While both technologies revolutionize our understanding of tissues, they serve distinct purposes. This pipeline focuses strictly on scRNA-seq, but understanding the distinction is crucial for selecting the right tool:
+
+**Single-Cell RNA-Seq:**
+
+**Goal:** Designed for cell type discovery and trajectory inference. It excels at identifying rare cell types and mapping how they change over time (differentiation).
+
+**Input:** Requires dissociated single cells, meaning the physical tissue structure is lost during processing.
+
+**Best For:** Finding new subtypes, calculating pseudotime, and analyzing complex heterogeneity in mixed suspensions.
+
+**Spatial Transcriptomics:**
+
+**Goal:** Designed to map tissue architecture. It answers where specific cells are located within the tissue structure.
+
+**Input:** Uses intact tissue sections, preserving the spatial coordinates (x,y) of gene expression.
+
+**Best For:** Studying cell-cell interactions, the tumor microenvironment, or zonation in organs like the liver or brain.
 
 **Why use this pipeline?**
 * **To identify rare cell types:** Uses high-resolution clustering and tailored QC thresholds to discover hidden sub-populations (e.g., specific Fibroblast subtypes) in complex tissues.
