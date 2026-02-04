@@ -10,7 +10,7 @@ This repository provides an end-to-end analytical pipeline for **Single-Cell RNA
 ##  Table of Contents
 1. [Introduction: What is scRNA-seq?](#1-introduction)
 2. [Dataset & Inputs](#2-dataset-inputs)
-3. [Requirements & Setup (Environment)](#3-environment)
+3. [Requirements & Setup](#3-environment)
 4. [Libraries Used](#4-libraries)
 5. [Code Workflow and Usage](#5-workflow)
 6. [Results and Outputs](#6-outputs)
@@ -20,7 +20,7 @@ This repository provides an end-to-end analytical pipeline for **Single-Cell RNA
 
 ##  1. Introduction: What is Single-Cell RNA Sequencing? <a name="1-introduction"></a>
 
-Traditional RNA sequencing (Bulk RNA-seq) gives the average gene expression of millions of cells in a tissue (like a "fruit smoothie"). **Single-Cell RNA Sequencing (scRNA-seq)**, on the other hand, tags and analyzes the genetic material of each cell individually (like identifying each "fruit" separately).
+Traditional RNA sequencing (Bulk RNA-seq) gives the average gene expression of millions of cells in a tissue. **Single-Cell RNA Sequencing (scRNA-seq)**, on the other hand, tags and analyzes the genetic material of each cell individually.
 
 **Why use this pipeline?**
 * **To identify rare cell types:** Uses high-resolution clustering and tailored QC thresholds to discover hidden sub-populations (e.g., specific Fibroblast subtypes) in complex tissues.
@@ -71,7 +71,7 @@ The pipeline uses a custom helper function (`load_and_standardize`) that automat
 
 ---
 
-##  3. Requirements & Setup (Environment) <a name="3-environment"></a>
+##  3. Requirements & Setup <a name="3-environment"></a>
 
 Using a **Conda** environment is highly recommended for the reproducibility of the analyses. Python 3.10 or higher is required.
 
