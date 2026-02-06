@@ -85,7 +85,8 @@ tar -xzvf datas.tar.
 The pipeline uses a custom helper function (`load_and_standardize`) that automatically tags your datasets with specific metadata. You can easily define your own sample names, experimental conditions (e.g., "Control", "7d", "IR"), and species directly within the script's data loading section.
 
 **Data Source:**
-The datasets used in this tutorial were obtained from the GEO (Gene Expression Omnibus) database and originate from the study “Single-cell RNA-Seq analysis of molecular changes during radiation-induced skin injury: the involvement of Nur77.” These data capture transcriptional dynamics in skin tissue across radiation-induced injury time points and provide a biologically relevant framework for demonstrating the single-cell RNA-seq analysis pipeline.
+The scRNA-Seq datasets used in this tutorial were obtained from the National Center for Biotechnology Information (NCBI) Gene Expression Omnibus (GEO). These data originate from the study “Single-cell RNA-Seq analysis of molecular changes during radiation-induced skin injury: the involvement of Nur77.”
+The datasets are publicly available under GEO Series accession numbers GSE193564 and GSE193807, and capture molecular and cellular dynamics in skin tissue across multiple radiation-induced injury time points.
 
 ---
 
