@@ -5,34 +5,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import bbknn
-import sys
 
 # ============================================================
-# 1. SETUP & LIBRARY CHECK (The "Monkey Patch" for fa2)
+# 1. SETUP
 # ============================================================
-
-try:
-    # Priority 1: Try 'fa2_modified' library (optimized for modern Scanpy)
-    import fa2_modified as fa2_real
-    
-    # CRITICAL: Monkey Patching. 
-    # We trick the system into thinking 'fa2_modified' is the standard 'fa2'.
-    # This allows Scanpy's internal function (sc.tl.draw_graph) to use the modified version automatically.
-    sys.modules['fa2'] = fa2_real
-    import fa2 # Can now be imported without error
-    
-    print(f"SUCCESS: 'fa2-modified' found and registered as 'fa2'.")
-
-except ImportError:
-    try:
-        # Priority 2: Fallback to standard 'fa2'
-        import fa2
-        print(f"SUCCESS: 'fa2' loaded via standard import.")
-    except ImportError:
-        # Case 3: If no fa2 is found, use Fruchterman-Reingold (built-in)
-        print("WARNING: Neither 'fa2' nor 'fa2_modified' could be found.")
-        print("-> Analysis will proceed with 'fr' (Fruchterman-Reingold) layout.")
-
 # Configure Scanpy aesthetics for publication
 sc.settings.verbosity = 3
 sc.set_figure_params(dpi=300, fontsize=8, facecolor="white", frameon=False, vector_friendly=True)
