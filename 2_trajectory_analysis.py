@@ -381,7 +381,7 @@ plot_split_tsne(human_fibro, keys=["Con", "IR"], key_col="condition", color_col=
                 save_path=RESULT_DIR / "2_trajectory_analysis/Human_tSNE_Split.png")
 
 # --- Fig 3E & 3F: Branched Trajectory Trees ---
-def plot_trajectory_branched(adata, name, label)
+def plot_trajectory_branched(adata, name, label):
     """Generates complex visual mapping of Pseudotime and Gene Expression on ForceAtlas2 layout."""
     layout_key = 'fa' if 'X_draw_graph_fa' in adata.obsm else 'fr'
     print(f"   > Plotting {name} branched trajectory using '{layout_key}'...")
