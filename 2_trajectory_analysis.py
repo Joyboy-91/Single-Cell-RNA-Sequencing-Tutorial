@@ -315,9 +315,6 @@ def analyze_fibroblast_subtypes_branched(adata, species_name):
     sc.pp.pca(adata)
 
     # 2. NEIGHBORHOOD GRAPH
-    # CRITICAL: n_neighbors is explicitly set to 10. 
-    # A smaller neighborhood forces the network to branch out (tree-like structure) 
-    # rather than collapsing into a dense, unreadable blob.
     sc.pp.neighbors(adata, n_neighbors=10, use_rep="X_pca") 
     
     # 3. CLUSTERING (Target: Rat=7, Human=5)
@@ -388,21 +385,6 @@ def plot_fig3a(adata, genes, filename, order):
 plot_fig3a(rat_fibro, RAT_TFS, "Rat_TF.png", ["Con", "7d", "14d", "28d"])
 plot_fig3a(human_fibro, HUMAN_TFS, "Human_TF.png", ["Con", "IR"])
 
-# --- Fig 3B: Common DEGs ---
-COMMON_DEGS = ["NUR77", "NR4A1", "CDKN1A", "DPT", "S100A10", "PROCR"]
-
-# Plot Rat
-valid_rat = [g for g in COMMON_DEGS if g in rat_fibro.raw.var_names]
-if valid_rat:
-    sc.pl.violin(rat_fibro, valid_rat, groupby="condition", rotation=90, show=False, use_raw=True)
-    plt.savefig(RESULT_DIR / "2_trajectory_analysis/Rat_CommonDEGs.png", bbox_inches="tight"); plt.close()
-
-# Plot Human
-valid_human = [g for g in COMMON_DEGS if g in human_fibro.raw.var_names]
-if valid_human:
-    sc.pl.violin(human_fibro, valid_human, groupby="condition", rotation=90, show=False, use_raw=True)
-    plt.savefig(RESULT_DIR / "2_trajectory_analysis/Human_CommonDEGs.png", bbox_inches="tight"); plt.close()
-
 # --- Fig 3C: Subtypes t-SNE (Combined + Split) ---
 # Rat
 tsne_rat = sc.pl.tsne(rat_fibro, color="sub_type", legend_loc="on data", palette="tab10", 
@@ -422,19 +404,8 @@ plt.close(tsne_human)
 plot_split_tsne(human_fibro, keys=["Con", "IR"], key_col="condition", color_col="sub_type", 
                 save_path=RESULT_DIR / "2_trajectory_analysis/Human_tSNE_Split.png")
 
-# --- Fig 3D: Nur77 Violin ---
-def plot_nur77(adata, name):
-    gene = "NR4A1" if "NR4A1" in adata.raw.var_names else "NUR77"
-    if gene in adata.raw.var_names:
-        sc.pl.violin(adata, gene, groupby="sub_type", rotation=0, use_raw=True, palette="tab10", show=False)
-        plt.title(f"{name} Nur77 Expression")
-        plt.savefig(RESULT_DIR / f"2_trajectory_analysis/{name}_Nur77.png", bbox_inches="tight"); plt.close()
-
-plot_nur77(rat_fibro, "Rat")
-plot_nur77(human_fibro, "Human")
-
-# --- Fig 3E & 3F: Branched Trajectory Trees (Advanced Visualization) ---
-def plot_trajectory_branched(adata, name, label):
+# --- Fig 3E & 3F: Branched Trajectory Trees ---
+def plot_trajectory_branched(adata, name, label)
     """Generates complex visual mapping of Pseudotime and Gene Expression on ForceAtlas2 layout."""
     layout_key = 'fa' if 'X_draw_graph_fa' in adata.obsm else 'fr'
     print(f"   > Plotting {name} branched trajectory using '{layout_key}'...")
@@ -487,52 +458,5 @@ def plot_trajectory_branched(adata, name, label):
                      edges=True, edges_width=0.3, 
                      title=f"{name} Subtype Branches")
     plt.savefig(RESULT_DIR / f"2_trajectory_analysis/{label}_{name}_Subtypes_Trajectory.png", bbox_inches="tight"); plt.close()
-
-    # 5. Condition Split on Trajectory (Temporal / Spatial changes)
-    if name == "Rat":
-        cond_order = ["Con", "7d", "14d", "28d"]
-    else:
-        cond_order = ["Con", "IR"]
     
-    # Calculate global coordinates to lock axes for fair comparison
-    basis_key = f"X_draw_graph_{layout_key}"
-    x_min, x_max = adata.obsm[basis_key][:, 0].min(), adata.obsm[basis_key][:, 0].max()
-    y_min, y_max = adata.obsm[basis_key][:, 1].min(), adata.obsm[basis_key][:, 1].max()
-    pad_x = (x_max - x_min) * 0.05
-    pad_y = (y_max - y_min) * 0.05
-
-    # Draw plots side-by-side
-    n_conds = len(cond_order)
-    fig, axes = plt.subplots(1, n_conds, figsize=(4 * n_conds, 4))
-    if n_conds == 1: axes = [axes]
-
-    for i, cond in enumerate(cond_order):
-        ax = axes[i]
-        subset = adata[adata.obs["condition"] == cond]
-        
-        sc.pl.draw_graph(
-            subset, 
-            color="condition", 
-            layout=layout_key, 
-            ax=ax, 
-            show=False, 
-            title=cond, 
-            frameon=False, 
-            legend_loc="none", 
-            s=50
-        )
-        
-        # Apply the locked axes
-        ax.set_xlim(x_min - pad_x, x_max + pad_x)
-        ax.set_ylim(y_min - pad_y, y_max + pad_y)
-        ax.set_xlabel("")
-        ax.set_ylabel("")
-
-    plt.tight_layout()
-    plt.savefig(RESULT_DIR / f"2_trajectory_analysis/{label}_{name}_Condition_Split.png", bbox_inches="tight")
-    plt.close()
-
-plot_trajectory_branched(rat_fibro, "Rat", "E")
-plot_trajectory_branched(human_fibro, "Human", "F")
-
 print("\n--- ALL ANALYSES COMPLETE ---")
