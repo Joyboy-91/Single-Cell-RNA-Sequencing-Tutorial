@@ -510,14 +510,6 @@ def plot_trajectory_branched(adata, name, label):
         plt.savefig(RESULT_DIR / f"2_trajectory_analysis/{label}_{name}_{gene}_Trajectory.png", bbox_inches="tight")
         plt.close()
 
-        plt.figure(figsize=(6, 4))
-        sc.pl.scatter(adata, x='dpt_pseudotime', y=plot_col_name, color='sub_type', 
-                      show=False, title=f"{name} {gene} across Pseudotime")
-        plt.xlabel("Pseudotime (Start -> End)")
-        plt.ylabel(f"{gene} Expression (log10(val+0.1))")
-        plt.savefig(RESULT_DIR / f"2_trajectory_analysis/{label}_{name}_{gene}_vs_Pseudotime_Scatter.png", bbox_inches="tight")
-        plt.close()
-
     sc.pl.draw_graph(adata, color="sub_type", layout=layout_key, 
                      frameon=False, show=False, palette="tab10", 
                      edges=True, edges_width=0.3, 
