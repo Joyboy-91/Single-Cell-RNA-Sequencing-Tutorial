@@ -101,11 +101,13 @@ conda activate sc_pipeline_env
 # 2. Install necessary libraries with specific versions for perfect reproducibility
 
 # Option A: Pure PIP Installation
-pip install scanpy==1.11.5 pandas==2.2.3 numpy==2.2.6 matplotlib==3.10.0 seaborn==0.13.2 bbknn==1.6.0 leidenalg==0.11.0 igraph==1.0.0
+pip install scanpy==1.11.5 pandas==2.2.3 numpy==2.2.6 matplotlib==3.10.0 seaborn==0.13.2 bbknn==1.6.0 leidenalg==0.11.0 igraph==1.0.0 scipy==1.15.3 scikit-misc==0.5.2
+umap-learn==0.5.7
 pip install fa2-modified==0.4 
 
 # Option B: Conda + PIP Installation (Recommended for better stability with C++ backend)
-conda install -c conda-forge scanpy==1.11.5 pandas==2.2.3 numpy==2.2.6 matplotlib==3.10.0 seaborn==0.13.2 leidenalg==0.11.0 python-igraph==1.0.0 -y
+conda install -c conda-forge scanpy==1.11.5 pandas==2.2.3 numpy==2.2.6 matplotlib==3.10.0 seaborn==0.13.2 leidenalg==0.11.0 python-igraph==1.0.0 scipy==1.15.3
+scikit-misc==0.5.2 umap-learn==0.5.7 -y
 pip install bbknn==1.6.0 fa2-modified==0.4
 ```
 
@@ -125,11 +127,19 @@ pip install bbknn==1.6.0 fa2-modified==0.4
 
 **Pandas (v2.2.3) & NumPy (v2.2+)** Core Python libraries used for metadata manipulation, sparse matrix operations, and numerical computations (e.g., root cell identification for pseudotime).
 
+**Seaborn (v0.13.2)** A high-level statistical data visualization library built on top of Matplotlib. Working alongside Scanpy's built-in plotting suite, it provides the underlying aesthetic frameworks and advanced color mapping needed to generate clean, publication-ready graphics, particularly for the pre- and post-filter QC violin plots.
+
 **Matplotlib (v3.10.0) & Seaborn (v0.13.2)** Used to generate all publication-ready visualizations, including t-SNE split plots, gene expression dot plots, and pseudotime distribution scatter plots.
+
+**SciPy (v1.15)** A fundamental scientific computing library utilized extensively for handling large, memory-efficient sparse matrices (scipy.sparse). The pipeline explicitly incorporates a custom ravel monkey patch for the csr_matrix to maintain compatibility with modern NumPy versions and prevent errors during array flattening.
 
 **pathlib (Built-in, Python 3.10)** A standard Python library used for object-oriented filesystem path manipulation. It ensures cross-platform compatibility (Windows, macOS, Linux) when loading raw data and automatically creates the necessary `results/` output directories.
 
 **sys (Built-in, Python 3.10)** Used for system-specific parameters and functions. In this pipeline, it is specifically utilized for "monkey patching" `sys.modules` to dynamically redirect standard `fa2` calls to the `fa2_modified` library.
+
+**umap-learn (v0.5.7)** The core mathematical engine that powers the Uniform Manifold Approximation and Projection (UMAP) algorithm. It is called by Scanpy to reduce the high-dimensional transcriptome data into a 2D representation, effectively preserving both the global topological structure and local cellular neighborhoods.
+
+**scikit-misc (v0.5.2)** An essential statistical backend required by Scanpy to identify highly variable genes using the "seurat_v3" flavor. It performs the necessary LOESS (Locally Estimated Scatterplot Smoothing) regression and variance calculations to feature-select the most biologically relevant genes prior to PCA and clustering.
 
 ---
 
