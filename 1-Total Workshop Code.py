@@ -41,6 +41,13 @@ def load_and_standardize(path, sample_id, condition, species):
         return None
 
 def process_basic(adata, batch_key):
+    if batch_key in adata.obs.columns:
+        
+        adata.obs[batch_key] = adata.obs[batch_key].astype(str)
+        replace_dict = {'0': 'Control', '1': 'Irradiated'}
+        adata.obs[batch_key] = adata.obs[batch_key].replace(replace_dict)
+        adata.obs[batch_key] = adata.obs[batch_key].astype('category')
+        
     adata.var["mt"] = adata.var_names.str.startswith("MT-")
     sc.pp.calculate_qc_metrics(adata, qc_vars=["mt"], inplace=True)
     
