@@ -60,21 +60,6 @@ This pipeline is fully compatible with standard 10x Genomics output formats. To 
 ### Dataset Source
 The scRNA-Seq datasets used in this tutorial were obtained from the National Center for Biotechnology Information (NCBI) Gene Expression Omnibus (GEO). These data originate from the study “Single-cell RNA-Seq analysis of molecular changes during radiation-induced skin injury: the involvement of Nur77.” The datasets are publicly available under GEO Series accession numbers GSE193564 and GSE193807, and capture molecular and cellular dynamics in skin tissue across multiple radiation-induced injury time points.
 
-###  Download the Dataset
-The raw dataset used in this tutorial (515 MB uncompressed) is hosted in the GitHub Releases section to keep the repository lightweight. 
-
-**Option A: One-Liner for Terminal (Linux / Mac / WSL / Git Bash) - Recommended**
-Run the following commands in your terminal to download and extract the dataset automatically:
-```bash
-wget [https://github.com/Joyboy-91/Single-Cell-RNA-Sequencing-Tutorial/releases/download/v1.0.0/datas.tar.gz](https://github.com/Joyboy-91/Single-Cell-RNA-Sequencing-Tutorial/releases/download/v1.0.0/datas.tar.gz)
-tar -xzvf datas.tar.gz
-```
-
-**Option B: Manual Download (Windows) `datas.tar.gz`]
-(https://github.com/Joyboy-91/Single-Cell-RNA-Sequencing-Tutorial/releases/download/v1.0.0/datas.tar.gz)**
-
-Place the downloaded file in your project folder and extract it so that the `datas/` folder is visible.
-
 **To extract via Terminal (Linux / Mac / WSL / Git Bash):**
 ```bash
 tar -xzvf datas.tar.gz
