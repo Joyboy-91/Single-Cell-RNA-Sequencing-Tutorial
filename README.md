@@ -77,7 +77,7 @@ Place the downloaded file in your project folder and extract it so that the `dat
 
 **To extract via Terminal (Linux / Mac / WSL / Git Bash):**
 ```bash
-tar -xzvf datas.tar.
+tar -xzvf datas.tar.gz
 ```
 
 **Supported Input Formats:**
