@@ -41,20 +41,39 @@ def load_and_standardize(path, sample_id, condition, species):
         return None
 
 def process_basic(adata, batch_key):
+    
     if batch_key in adata.obs.columns:
-        
         adata.obs[batch_key] = adata.obs[batch_key].astype(str)
-        replace_dict = {'0': 'Control', '1': 'Irradiated'}
-        adata.obs[batch_key] = adata.obs[batch_key].replace(replace_dict)
-        adata.obs[batch_key] = adata.obs[batch_key].astype('category')
         
+        unique_batches = adata.obs[batch_key].unique()
+        n_batches = len(unique_batches)
+        
+        if n_batches <= 2:
+            print(f"Detected Human Data ({n_batches} batches). Renaming...")
+            rename_map = {
+                '0': 'Control', 
+                '1': 'Irradiated'
+            }
+        else:
+            print(f"Detected Rat Data ({n_batches} batches). Renaming...")
+            rename_map = {
+                '0': 'Day 0 (Control)',
+                '1': 'Day 7',
+                '2': 'Day 14',
+                '3': 'Day 28'
+            }
+            
+        adata.obs[batch_key] = adata.obs[batch_key].map(rename_map).fillna(adata.obs[batch_key])
+        
+        adata.obs[batch_key] = adata.obs[batch_key].astype('category')
+
     adata.var["mt"] = adata.var_names.str.startswith("MT-")
     sc.pp.calculate_qc_metrics(adata, qc_vars=["mt"], inplace=True)
     
     print(f"Number of cells before filtering: {adata.n_obs}")
 
     print(f"Generating RAW QC Plots for {batch_key}...")
-
+    
     sc.pl.violin(
         adata,
         ["n_genes_by_counts", "total_counts", "pct_counts_mt"],
@@ -62,7 +81,7 @@ def process_basic(adata, batch_key):
         multi_panel=True,
         show=False
     )
-    plt.suptitle(f"Raw (Pre-Filter): {batch_key}", y=1.05) 
+    plt.suptitle(f"Raw Rat (Pre-Filter) Violin", y=1.05) 
     plt.savefig(RESULT_DIR / f"QC_1_Raw_Violin_{batch_key}.png", bbox_inches="tight")
     plt.close()
 
@@ -72,7 +91,7 @@ def process_basic(adata, batch_key):
         y="n_genes_by_counts", 
         color="pct_counts_mt", 
         show=False,
-        title=f"Raw (Pre-Filter) Scatter: {batch_key}" 
+        title=f"Raw Rat(Pre-Filter) Scatter" 
     )
     plt.savefig(RESULT_DIR / f"QC_1_Raw_Scatter_{batch_key}.png", bbox_inches="tight")
     plt.close()
@@ -94,7 +113,7 @@ def process_basic(adata, batch_key):
         multi_panel=True,
         show=False
     )
-    plt.suptitle(f"Filtered (Post-Filter): {batch_key}", y=1.05)
+    plt.suptitle(f"Filtered Rat (Post-Filter) Violin", y=1.05)
     plt.savefig(RESULT_DIR / f"QC_2_Filtered_Violin_{batch_key}.png", bbox_inches="tight")
     plt.close()
 
@@ -104,10 +123,11 @@ def process_basic(adata, batch_key):
         y="n_genes_by_counts", 
         color="pct_counts_mt", 
         show=False,
-        title=f"Filtered (Post-Filter) Scatter: {batch_key}"
+        title=f"Filtered Rat (Post-Filter) Scatter"
     )
     plt.savefig(RESULT_DIR / f"QC_2_Filtered_Scatter_{batch_key}.png", bbox_inches="tight")
     plt.close()
+
 
     print("Generating QC Plot: Log1P ONLY (No Normalization)...")
 
@@ -123,10 +143,10 @@ def process_basic(adata, batch_key):
         size=2,
         show=False,
         title=[
-            f"LogOnly: {batch_key} (PC1-2)", 
-            f"LogOnly: {batch_key} (PC3-4)", 
-            "LogOnly: Counts", 
-            "LogOnly: MT%"
+            f"Filtered LogOnly: Rat (PC1-2)", 
+            f"Filtered LogOnly: Rat (PC3-4)", 
+            "Filtered LogOnly: Rat (PC1-2) Gene Counts", 
+            "Filtered LogOnly: Rat (PC3-4) MT%"
         ]
     )
     plt.savefig(RESULT_DIR / f"QC_PCA_ScenarioA_LogOnly_{batch_key}.png", bbox_inches="tight")
@@ -147,10 +167,10 @@ def process_basic(adata, batch_key):
         size=2,
         show=False,
         title=[
-            f"NormOnly: {batch_key} (PC1-2)", 
-            f"NormOnly: {batch_key} (PC3-4)", 
-            "NormOnly: Counts", 
-            "NormOnly: MT%"
+            f"Filtered Normalization Only: Rat (PC1-2)", 
+            f"Filtered Normalization Only: Rat (PC3-4)", 
+            f"Filtered Normalization Only: Rat (PC1-2) Gene Counts", 
+            f"Filtered Normalization Only: Rat (PC3-4) MT%"
         ]
     )
     plt.savefig(RESULT_DIR / f"QC_PCA_ScenarioB_NormOnly_{batch_key}.png", bbox_inches="tight")
@@ -158,14 +178,14 @@ def process_basic(adata, batch_key):
     del adata_norm_only
 
     sc.pp.normalize_total(adata, target_sum=1e4)
- 
+
     sc.pp.log1p(adata)
     adata.raw = adata 
-   
+    
     sc.pp.highly_variable_genes(adata, n_top_genes=3000, flavor="seurat_v3")
     sc.pp.regress_out(adata, ["total_counts", "pct_counts_mt"])
     sc.pp.scale(adata)
- 
+
     sc.tl.pca(adata, mask_var="highly_variable")
 
     sc.pl.pca(
@@ -176,10 +196,10 @@ def process_basic(adata, batch_key):
         size=2,
         show=False,
         title=[
-            f"Final: {batch_key} (PC1-2)", 
-            f"Final: {batch_key} (PC3-4)", 
-            "Final: Counts", 
-            "Final: MT%"
+            f"Filtered Standard: Rat (PC1-2)", 
+            f"Filtered Standard: Rat (PC3-4)", 
+            f"Filtered Standard: Rat (PC1-2) Gene Counts", 
+            f"Filtered Standard: Rat (PC3-4) MT%"
         ]
     )
     plt.savefig(RESULT_DIR / f"QC_PCA_Standard_Final_{batch_key}.png", bbox_inches="tight")
